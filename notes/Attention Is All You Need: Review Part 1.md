@@ -49,7 +49,7 @@ Decoder output: $y = (y_1, y_2, \dots, y_m)$
 
 $\implies$ The input sequence and output sequence does not need to have the same length.
 
-#### Transfomrmer: Encoder-Decoder Layers
+#### Transformer: Encoder-Decoder Layers
 
 **Encoder Layer**: Composed of two components, _Self-Attention_ and _Position Wise Linear Layer_.
 
@@ -60,6 +60,7 @@ It is worth mentioning that:
 - encoder inputs are shifted to the right.
 - encoder and decoder are composed of stack of $N = 6$ layers.
 - Residual connections is employed, i.e, $x_{layer} = Layer(x) + x$.
-- Layer Normalization is applied at each the end of each component, i.e, $ h = LayerNorm(Layer(x) + x)$.
+- Layer Normalization is applied at each the end of each component, i.e, $h = LayerNorm(Layer(x) + x)$.
 - all layers outputs have dimension of $d_{model} = 512$.
-- 
+
+#### Transformer: Attention Layer
