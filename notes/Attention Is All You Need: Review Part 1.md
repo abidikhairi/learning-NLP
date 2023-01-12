@@ -29,3 +29,17 @@ The last paragraph present the proposed model, **The Transformer**, an architect
     3. ConvS2S:
 
 These Architectures are based on convolutions neural networks.
+
+**Self-Attention** is process that _connects_ positions (words) in the same sequence.
+Example: "Aujourd'hui il fait beau"
+
+scores are computed between each position and all other positions.
+
+### Section 2: Model Architecture
+
+#### Encoder Decoder Architecture
+
+Encoder input: $x = (x_1, x_2, \dots, x_n)$
+Encoder output: $z = (z_1, z_2, \dots, z_n)$
+Decoder input: $z = (z_1, z_2, \dots, z_n)$
+Decoder output: $y = (y_1, y_2, \dots, y_m)$
