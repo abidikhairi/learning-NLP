@@ -35,11 +35,31 @@ Example: "Aujourd'hui il fait beau"
 
 scores are computed between each position and all other positions.
 
-### Section 2: Model Architecture
+### Section 3: Model Architecture
 
 #### Encoder Decoder Architecture
 
 Encoder input: $x = (x_1, x_2, \dots, x_n)$
+
 Encoder output: $z = (z_1, z_2, \dots, z_n)$
+
 Decoder input: $z = (z_1, z_2, \dots, z_n)$
+
 Decoder output: $y = (y_1, y_2, \dots, y_m)$
+
+$\implies$ The input sequence and output sequence does not need to have the same length.
+
+#### Transfomrmer: Encoder-Decoder Layers
+
+**Encoder Layer**: Composed of two components, _Self-Attention_ and _Position Wise Linear Layer_.
+
+**Decoder Layer**:Composed of three components, _Self-Attention_, _Position Wise Linear Layer_ and _Attention Layer_ between encoder outputs and decoder inputs.
+
+It is worth mentioning that:
+
+- encoder inputs are shifted to the right.
+- encoder and decoder are composed of stack of $N = 6$ layers.
+- Residual connections is employed, i.e, $x_{layer} = Layer(x) + x$.
+- Layer Normalization is applied at each the end of each component, i.e, $ h = LayerNorm(Layer(x) + x)$.
+- all layers outputs have dimension of $d_{model} = 512$.
+- 
