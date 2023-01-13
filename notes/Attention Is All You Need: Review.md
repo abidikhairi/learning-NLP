@@ -1,7 +1,5 @@
 # Attention is All You Need
 
-## Part 1:
-
 ### Section 0: Abstract
 
 - Seq2Seq Problems are handled by Encoder-Decoder Architectures
@@ -75,4 +73,16 @@ $$ Attention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V $$
 3.  _Decoder Attention_: Self Attention is used, with masking (set to `-inf`) of illegal positions.
 
 In addition of Attention layers, Position wise Feedforward Networks are used (MLP):
+
 $$ FFN(X) = max(0, XW_1 + b_1)W_2 + b_2 $$
+
+#### Positional encoding
+$\implies$ inject position (absolute or relative) information to learned word (token) embeddings.
+
+
+### Section 4: Training
+
+-   WMT 2014 English-German: [link](https://huggingface.co/datasets/wmt14/viewer/de-en/)
+-   WMT 2014 English-French: [link](https://huggingface.co/datasets/wmt14/viewer/fr-en/)
+
+**Dropout**: is used and the end of each sub-layer, in addition, it is used (with $p=0.1$) on the sum of embeddings and positional encoding.
