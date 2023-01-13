@@ -64,3 +64,15 @@ It is worth mentioning that:
 - all layers outputs have dimension of $d_{model} = 512$.
 
 #### Transformer: Attention Layer
+
+$\implies$ The attention is a function that maps query and keys to a set of values.
+
+$$ Attention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_k}})V $$
+
+##### Application of Attention
+1.  _Encoder-Decoder Attention_: queries come from the Decoder, keys and values are the output of the encoder. The model can learn to align outputs (target) with inputs (source).
+2.  _Encoder Attention_: Self Attention is used.
+3.  _Decoder Attention_: Self Attention is used, with masking (set to `-inf`) of illegal positions.
+
+In addition of Attention layers, Position wise Feedforward Networks are used (MLP):
+$$ FFN(X) = max(0, XW_1 + b_1)W_2 + b_2 $$
