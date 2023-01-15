@@ -9,4 +9,4 @@ docker run --rm -it -v "/path/to/this/directory:/manim" manimcommunity/manim man
 ## Animations
 ### Word embedding process
 
-![word embedding]([./figures/TextEmbedding.gif](https://raw.githubusercontent.com/abidikhairi/learning-NLP/main/projects/animations/figures/TextEmbedding.gif))
+![word embedding](./figures/word-embedding.gif)
