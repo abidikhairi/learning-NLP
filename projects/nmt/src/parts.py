@@ -1,6 +1,7 @@
 import math
 import torch as th
 import torch.nn as nn
+from src.utils import clones
 
 
 class PositionalEncoding(nn.Module):
@@ -35,3 +36,85 @@ class Embedding(nn.Module):
             return self.lookup(x)
         x = self.lookup(x) * (self.d_model ** 0.5)
         return x
+
+
+class AttentionHead(nn.Module):
+    def __init__(self, d_k: int, d_model: int):
+        super(AttentionHead, self).__init__()
+
+        self.w_q = nn.Linear(d_model, d_k, False)
+        self.w_k = nn.Linear(d_model, d_k, False)
+        self.w_v = nn.Linear(d_model, d_k, False)
+
+        self.d_model = d_model
+
+    def forward(self, query: th.Tensor, key: th.Tensor, value: th.Tensor, mask=None):
+        query = self.w_q(query)
+        key = self.w_k(key)
+        value = self.w_v(value)
+
+        scores = th.bmm(query, key.transpose(1, 2)) * (self.d_model ** -0.5)
+        # this also can be used -> key.permute(0, 2, 1)
+
+        if mask is not None:
+            scores = scores.masked_fill(mask, 1e-9)
+        scores = th.softmax(scores, dim=-1)
+
+        attns = th.bmm(scores, value)
+
+        return attns
+
+
+class MultiHeadAttention(nn.Module):
+    def __init__(self, d_model: int, nhead: int):
+        super(MultiHeadAttention, self).__init__()
+
+        assert d_model // nhead
+        self.d_k = d_model // nhead
+
+        self.heads = clones(AttentionHead(d_k=self.d_k, d_model=d_model), n=nhead)
+        self.linear = nn.Linear(d_model, d_model, False)
+
+    def forward(self, query: th.Tensor, key: th.Tensor, value: th.Tensor, mask: th.Tensor = None):
+        heads = [head(query, key, value, mask) for head in self.heads]
+        x = th.cat(heads, dim=-1)
+
+        return self.linear(x)
+
+
+class FeedForward(nn.Module):
+    def __init__(self, d_model: int, dim_ff: int = 2048):
+        super(FeedForward, self).__init__()
+
+        self.w1 = nn.Linear(d_model, dim_ff)
+        self.w2 = nn.Linear(dim_ff, d_model)
+
+    def forward(self, x):
+        x = th.relu(self.w1(x))
+
+        return self.w2(x)
+
+
+class LayerApplier(nn.Module):
+    def __init__(self, size: int, dropout: float):
+        super(LayerApplier, self).__init__()
+
+        self.norm = nn.LayerNorm(size)
+        self.dropout = nn.Dropout(p=dropout)
+
+    def forward(self, x, layer: callable):
+        x = layer(x) + x
+        return self.dropout(self.norm(x))
+
+
+class EncoderLayer(nn.Module):
+    def __init__(self, d_model: int, self_attn: nn.Module, feedforward: nn.Module, dropout: float):
+        super(EncoderLayer, self).__init__()
+        self.self_attn = self_attn
+        self.feedforward = feedforward
+        self.sublayers = clones(LayerApplier(size=d_model, dropout=dropout), n=2)
+
+    def forward(self, x, mask=None):
+        x = self.sublayers[0](x, lambda x: self.self_attn(x, x, x, mask))
+
+        return self.sublayers[1](x, lambda x: self.feedforward(x))
