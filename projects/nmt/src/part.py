@@ -4,7 +4,6 @@ import torch.nn as nn
 
 
 class PositionalEncoding(nn.Module):
-
     def __init__(self, d_model, dropout=0.1, max_len=5000):
         super(PositionalEncoding, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
@@ -24,12 +23,15 @@ class PositionalEncoding(nn.Module):
 
 
 class Embedding(nn.Module):
-    def __init__(self, vocab_size, d_model):
+    def __init__(self, vocab_size, d_model, do_scale=True):
         super(Embedding, self).__init__()
 
         self.lookup = nn.Embedding(vocab_size, d_model)
         self.d_model = d_model
+        self.scale = do_scale
 
     def forward(self, x):
+        if not self.scale:
+            return self.lookup(x)
         x = self.lookup(x) * (self.d_model ** 0.5)
         return x
