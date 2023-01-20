@@ -1,7 +1,7 @@
 import math
 import torch as th
 import torch.nn as nn
-from src.utils import clones
+from src.utils import clones, subsequent_mask
 
 
 class PositionalEncoding(nn.Module):
@@ -118,3 +118,37 @@ class EncoderLayer(nn.Module):
         x = self.sublayers[0](x, lambda x: self.self_attn(x, x, x, mask))
 
         return self.sublayers[1](x, lambda x: self.feedforward(x))
+
+
+class DecoderLayer(nn.Module):
+    def __init__(self, d_model: int, self_attn: nn.Module, feedforward: nn.Module, dropout: float):
+        super(DecoderLayer, self).__init__()
+
+        self.self_attn = self_attn
+        self.src_attn = self_attn
+        self.feedforward = feedforward
+
+        self.sublayers = clones(LayerApplier(d_model, dropout), 3)
+
+    def forward(self, x, memory, src_mask, tgt_mask):
+        x = self.sublayers[0](x, lambda x: self.self_attn(x, x, x, tgt_mask))
+        x = self.sublayers[1](x, lambda x: self.src_attn(memory, memory, x, src_mask))
+
+        return self.sublayers[2](x, lambda x: self.feedforward(x))
+
+
+if __name__ == '__main__':
+    memory = th.randn(16, 10, 512)
+    tgt = th.randn(16, 10, 512)
+
+    tgt_mask = subsequent_mask(10)
+    src_mask = th.ones(16, 10, 10)
+
+    self_attn = MultiHeadAttention(d_model=512, nhead=8)
+    feedforward = FeedForward(d_model=512, dim_ff=2048)
+
+    layer = DecoderLayer(d_model=512, self_attn=self_attn, feedforward=feedforward, dropout=0.1)
+
+    out = layer(tgt, memory, src_mask, tgt_mask)
+
+    print(out.shape)
