@@ -1,7 +1,7 @@
 import torch as th
 import torch.nn as nn
 
-from src.part import Embedding, PositionalEncoding
+from src.parts import Embedding, PositionalEncoding
 
 
 class Generator(nn.Module):
