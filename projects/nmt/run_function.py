@@ -2,6 +2,7 @@ import sys
 import torch as th
 import matplotlib.pyplot as plt
 from src.parts import PositionalEncoding
+from src.utils import subsequent_mask
 
 
 def positional_encoding():
@@ -19,6 +20,17 @@ def positional_encoding():
     plt.ylabel("Encoding")
     plt.colorbar()
     plt.savefig("figures/positional_encoding.png")
+
+
+def decoder_mask():
+    mask = subsequent_mask(20).numpy()
+
+    plt.plot()
+    plt.imshow(mask)
+    plt.xlabel("Available Context")
+    plt.ylabel("Word")
+    plt.colorbar()
+    plt.savefig("figures/decoder_mask.png")
 
 
 if __name__ == "__main__":
