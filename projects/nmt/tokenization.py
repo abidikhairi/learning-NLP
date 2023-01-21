@@ -34,4 +34,7 @@ if __name__ == "__main__":
         ]
     )
 
+    tokenizer.enable_padding(pad_token='[PAD]', pad_id=tokenizer.token_to_id('[PAD]'))
+    tokenizer.enable_truncation(max_length=10000)
+
     tokenizer.save("./data/tokenizers/ar-iwslt2017")
