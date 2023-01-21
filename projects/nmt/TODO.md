@@ -14,3 +14,4 @@
     - Encoder-Decoder Attention
     - Decoder Masking
    
+5. Implement custom arabic tokenizer
