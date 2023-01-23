@@ -49,13 +49,14 @@ class Seq2Seq(nn.Module):
     def __init__(self, src_vocab: int, tgt_vocab: int, d_model: int = 512, nhead: int = 8, num_decoder_layers: int = 6,
                  num_encoder_layers: int = 6,
                  dim_feedforward: int = 2048,
-                 dropout: float = 0.1):
+                 dropout: float = 0.1,
+                 pad_token: int = 0):
         super(Seq2Seq, self).__init__()
 
         self.pe = PositionalEncoding(d_model, dropout=dropout, max_len=10000)
 
-        self.src_embedding = Embedding(src_vocab, d_model)
-        self.tgt_embedding = Embedding(tgt_vocab, d_model)
+        self.src_embedding = Embedding(src_vocab, d_model, padding_idx=pad_token)
+        self.tgt_embedding = Embedding(tgt_vocab, d_model, padding_idx=pad_token)
 
         self_attn: nn.Module = MultiHeadAttention(d_model=d_model, nhead=nhead)
         feedforward: nn.Module = FeedForward(d_model=d_model, dim_ff=dim_feedforward)

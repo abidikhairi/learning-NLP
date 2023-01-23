@@ -24,10 +24,10 @@ class PositionalEncoding(nn.Module):
 
 
 class Embedding(nn.Module):
-    def __init__(self, vocab_size, d_model, do_scale=True):
+    def __init__(self, vocab_size, d_model, do_scale=True, padding_idx=0):
         super(Embedding, self).__init__()
 
-        self.lookup = nn.Embedding(vocab_size, d_model)
+        self.lookup = nn.Embedding(vocab_size, d_model, padding_idx=padding_idx)
         self.d_model = d_model
         self.scale = do_scale
 
