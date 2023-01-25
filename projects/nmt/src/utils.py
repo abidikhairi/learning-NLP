@@ -72,5 +72,6 @@ def prepare_inputs(src, src_mask, tgt, tgt_mask, pad_id):
     src_mask = src_mask.unsqueeze(2).bool()
     tgt_mask = tgt_mask.unsqueeze(2).bool()
     seq_len = tgt.size(1)
+    tgt_y = torch.roll(tgt, shifts=1, dims=1)
 
-    return src, src_mask, tgt, tgt_mask, seq_len
+    return src, src_mask, tgt, tgt_mask, tgt_y, seq_len
