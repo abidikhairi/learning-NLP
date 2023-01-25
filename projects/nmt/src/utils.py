@@ -4,7 +4,7 @@ import copy
 
 def learning_rate(step, warmup_steps, d_model):
     step = 1 if step == 0 else step
-    rl = (d_model **  -0.5)  * min(step ** -0.5, step * warmup_steps ** (-1.5))
+    rl = (d_model ** -0.5) * min(step ** -0.5, step * warmup_steps ** (-1.5))
     return rl
 
 
@@ -22,11 +22,12 @@ def move(*args, **kwargs):
 
 
 class DataCollator(object):
-    def __init__(self, src: str, tgt: str, src_tokenizer, tgt_tokenizer):
+    def __init__(self, src: str, tgt: str, src_tokenizer, tgt_tokenizer, pad_token):
         self.src = src
         self.tgt = tgt
         self.tgt_tokenizer = tgt_tokenizer
         self.src_tokenizer = src_tokenizer
+        self.pad_token = pad_token
 
     def __call__(self, features, **kwargs):
         src_sentences = []
@@ -38,13 +39,10 @@ class DataCollator(object):
 
         src = self.src_tokenizer(src_sentences, padding=True, truncation=True, return_tensors="pt")
         tgt = self.tgt_tokenizer(tgt_sentences, padding=True, truncation=True, return_tensors="pt")
-        tgt['input_ids'] = tgt['input_ids']
-        tgt['attention_mask'] = tgt['attention_mask']
 
-        return {
-            'src': src,
-            'tgt': tgt,
-        }
+        batch = { 'src': src, 'tgt': tgt }
+
+        return Batch(batch=batch, pad_token=self.pad_token)
 
 
 def subsequent_mask(size: int) -> torch.Tensor:
@@ -75,3 +73,22 @@ def prepare_inputs(src, src_mask, tgt, tgt_mask, pad_id):
     tgt_y = torch.roll(tgt, shifts=1, dims=1)
 
     return src, src_mask, tgt, tgt_mask, tgt_y, seq_len
+
+
+class Batch:
+    def __init__(self, batch: dict, pad_token: int = 0):
+        self.src = batch['src']['input_ids']
+        self.src_mask = batch['src']['attention_mask']
+        self.tgt = batch['tgt']['input_ids']
+        self.tgt_mask = batch['tgt']['attention_mask']
+
+        self.pad_token = pad_token
+
+    def __call__(self, *args, **kwargs):
+        device = kwargs.get('device')
+        src, src_mask, tgt, tgt_mask, tgt_y, seq_len = prepare_inputs(self.src, self.src_mask, self.tgt, self.tgt_mask,
+                                                                      pad_id=self.pad_token)
+
+        src, src_mask, tgt, tgt_mask = move(src, src_mask, tgt, tgt_mask, device=device)
+
+        return src, src_mask, tgt, tgt_mask, tgt_y, seq_len
