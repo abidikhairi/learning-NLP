@@ -107,3 +107,9 @@ where:
 #### WMT 2014 English-to-French
 - Tansformermer (Big): 41.0 BLEU (_new state-of-the-art_).
     - dropout rate: 0.1
+
+
+### Section XX: Learned Tips from Transformer
+-   Use Gradient normalization whenever possible.
+-   Label smoothing makes the model more pessimistic (w.r.t smoothing factor). but it's useful in translation tasks.
+-   Sinusiodal Positional Encoding have the same effect of learned positional encoding.
