@@ -86,3 +86,24 @@ $\implies$ inject position (absolute or relative) information to learned word (t
 -   WMT 2014 English-French: [link](https://huggingface.co/datasets/wmt14/viewer/fr-en/)
 
 **Dropout**: is used and the end of each sub-layer, in addition, it is used (with $p=0.1$) on the sum of embeddings and positional encoding.
+
+#### Label Smoothing
+
+Is a regularization technique, used to tackle the _overconfidence_ problem (a model may predict 0.9 as an outcome while the accuracy is 0.6)
+
+$$ y_{ls} = (1 - \alpha) * y_{hot} + \alpha/K $$
+where:
+-   $y_{hot}$: is the one hot-encoded label vector.
+-   $\alpha$: smoothing factor.
+-   $K$: the number of classes.
+
+### Section 5: Results
+
+#### WMT 2014 English-to-German
+- Transformer (Big): 28.4 BLEU (_new state-of-the-art_).
+    - 3.5 days
+    - 8 P100 GPU
+
+#### WMT 2014 English-to-French
+- Tansformermer (Big): 41.0 BLEU (_new state-of-the-art_).
+    - dropout rate: 0.1
