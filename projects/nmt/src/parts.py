@@ -137,18 +137,29 @@ class DecoderLayer(nn.Module):
         return self.sublayers[2](x, lambda x: self.feedforward(x))
 
 
-if __name__ == '__main__':
-    memory = th.randn(16, 10, 512)
-    tgt = th.randn(16, 10, 512)
+class LabelSmoothing(nn.Module):
+    "Implement label smoothing."
 
-    tgt_mask = subsequent_mask(10)
-    src_mask = th.ones(16, 10, 10)
+    def __init__(self, size, padding_idx, smoothing=0.0):
+        super(LabelSmoothing, self).__init__()
+        self.criterion = nn.CrossEntropyLoss(label_smoothing=smoothing, reduction="mean", ignore_index=padding_idx)
+        self.padding_idx = padding_idx
+        self.smoothing = smoothing
+        self.size = size
+        self.true_dist = None
 
-    self_attn = MultiHeadAttention(d_model=512, nhead=8)
-    feedforward = FeedForward(d_model=512, dim_ff=2048)
+    def forward(self, x: th.Tensor, target: th.LongTensor):
+        return self.criterion(x.view(-1, x.size(-1)), target.view(-1))
 
-    layer = DecoderLayer(d_model=512, self_attn=self_attn, feedforward=feedforward, dropout=0.1)
 
-    out = layer(tgt, memory, src_mask, tgt_mask)
+class SimpleLossCompute:
+    "A simple loss compute and train function."
 
-    print(out.shape)
+    def __init__(self, generator, criterion):
+        self.generator = generator
+        self.criterion = criterion
+
+    def __call__(self, x, y, norm=1):
+        x = self.generator(x)
+        sloss = (self.criterion(x, y) / norm)
+        return sloss

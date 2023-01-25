@@ -38,14 +38,12 @@ class DataCollator(object):
 
         src = self.src_tokenizer(src_sentences, padding=True, truncation=True, return_tensors="pt")
         tgt = self.tgt_tokenizer(tgt_sentences, padding=True, truncation=True, return_tensors="pt")
-        tgt['input_ids'] = tgt['input_ids'][:, :-1]
-        tgt['attention_mask'] = tgt['attention_mask'][:, :-1]
+        tgt['input_ids'] = tgt['input_ids']
+        tgt['attention_mask'] = tgt['attention_mask']
 
-        tgt_y = tgt['input_ids'][:, 1:]
         return {
             'src': src,
             'tgt': tgt,
-            'tgt_y': tgt_y
         }
 
 
@@ -73,5 +71,6 @@ def prepare_inputs(src, src_mask, tgt, tgt_mask, pad_id):
 
     src_mask = src_mask.unsqueeze(2).bool()
     tgt_mask = tgt_mask.unsqueeze(2).bool()
+    seq_len = tgt.size(1)
 
-    return src, src_mask, tgt, tgt_mask
+    return src, src_mask, tgt, tgt_mask, seq_len
