@@ -14,7 +14,7 @@ class Generator(nn.Module):
     def forward(self, x):
         x = self.linear(x)
 
-        return th.log_softmax(x, dim=-1)
+        return x
 
 
 class Encoder(nn.Module):
