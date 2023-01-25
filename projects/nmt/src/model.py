@@ -76,3 +76,8 @@ class Seq2Seq(nn.Module):
         out = self.decoder(tgt, memory, src_mask, tgt_mask)
 
         return out
+
+    def validation_step(self, src, src_mask, tgt, tgt_mask):
+        output = self(src, src_mask, tgt, tgt_mask)
+
+        return self.generator(output)
