@@ -1,8 +1,9 @@
 import torch as th
 import torch.nn as nn
 
+from src.config import Seq2SeqConfig, OptimizerConfig
 from src.parts import Embedding, PositionalEncoding, EncoderLayer, MultiHeadAttention, FeedForward, DecoderLayer
-from src.utils import clones
+from src.utils import clones, learning_rate
 
 
 class Generator(nn.Module):
@@ -81,3 +82,20 @@ class Seq2Seq(nn.Module):
         output = self(src, src_mask, tgt, tgt_mask)
 
         return self.generator(output)
+
+
+def create_model_from_config(src_vocab: int, tgt_vocab: int, config: Seq2SeqConfig, **kwargs):
+    device = kwargs.get('device', 'cpu')
+
+    return Seq2Seq(src_vocab, tgt_vocab, config.d_model, config.nhead, config.num_decoder_layers,
+                   config.num_encoder_layers, config.dim_feedforward, config.dropout, config.pad_token) \
+        .to(device)
+
+
+def create_optimizer_from_config(config: OptimizerConfig, model: th.nn.Module):
+    lr_wrapper_fn = lambda step: learning_rate(step=step, warmup_steps=config.warmup_steps, d_model=config.d_model)
+
+    optimizer = th.optim.Adam(model.parameters(), lr=config.lr, betas=(config.beta1, config.beta2), eps=config.eps)
+    scheduler = th.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_wrapper_fn)
+
+    return optimizer, scheduler
