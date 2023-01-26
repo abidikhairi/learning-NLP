@@ -29,6 +29,7 @@ class TrainingConfig(BaseModel):
     dataset_name: str
     src_tokenizer: str
     tgt_tokenizer: str
+    epochs: int
     train_batch_size: int
     valid_batch_size: int
     log_every_n_steps: int

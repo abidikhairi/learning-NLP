@@ -6,6 +6,7 @@
   "tgt_tokenizer": "bert-base-uncased",
   "dataset": "iwslt2017",
   "dataset_name": "iwslt2017-ar-en",
+  "epochs": 5,
   "train_batch_size": 16,
   "valid_batch_size": 16,
   "log_every_n_steps": 50,
