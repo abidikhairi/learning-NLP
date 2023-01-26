@@ -1,3 +1,4 @@
+import pydantic
 import torch
 import copy
 
@@ -92,3 +93,7 @@ class Batch:
         src, src_mask, tgt, tgt_mask = move(src, src_mask, tgt, tgt_mask, device=device)
 
         return src, src_mask, tgt, tgt_mask, tgt_y, seq_len
+
+
+def parse_config_file(path, _class) -> pydantic.BaseModel:
+    return pydantic.parse_file_as(_class, path)
