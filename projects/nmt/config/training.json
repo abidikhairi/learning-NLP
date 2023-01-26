@@ -1,0 +1,13 @@
+{
+  "device": "cuda",
+  "src": "ar",
+  "tgt": "en",
+  "src_tokenizer": "asafaya/bert-base-arabic",
+  "tgt_tokenizer": "bert-base-uncased",
+  "dataset": "iwslt2017",
+  "dataset_name": "iwslt2017-ar-en",
+  "train_batch_size": 16,
+  "valid_batch_size": 16,
+  "log_every_n_steps": 50,
+  "smoothing_factor": 0.1
+}
