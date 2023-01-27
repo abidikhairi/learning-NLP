@@ -28,7 +28,7 @@ def validation_step(model, compute_loss, batch, device, tgt_tokenizer):
     preds = torch.argmax(output, dim=-1)
 
     preds = tgt_tokenizer.batch_decode(preds)
-    references = tgt.batch_decode(tgt)
+    references = tgt_tokenizer.batch_decode(tgt)
 
     bleu_score = BLEUScore(n_gram=2)
     score = bleu_score(preds, references)
