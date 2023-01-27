@@ -32,5 +32,6 @@ class TrainingConfig(BaseModel):
     epochs: int
     train_batch_size: int
     valid_batch_size: int
+    num_workers: int
     log_every_n_steps: int
     smoothing_factor: float

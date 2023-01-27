@@ -10,7 +10,6 @@ from src.training import training_step, validation_step
 from src.config import Seq2SeqConfig, OptimizerConfig, TrainingConfig
 from src.utils import extract_sentences, DataCollator, parse_config_file
 
-
 if __name__ == '__main__':
     train_conf: TrainingConfig = parse_config_file("./config/training.json", TrainingConfig)
     model_config: Seq2SeqConfig = parse_config_file("./config/seq2seq.json", Seq2SeqConfig)
@@ -18,7 +17,8 @@ if __name__ == '__main__':
 
     experim_conf = {**train_conf.dict(), **model_config.dict(), **optim_config.dict()}
 
-    experim = wandb.init(project="machine-translation", entity="flursky", tags=[train_conf.dataset], config=experim_conf)
+    experim = wandb.init(project="machine-translation", entity="flursky", tags=[train_conf.dataset],
+                         config=experim_conf)
 
     device = th.device(train_conf.device)
 
@@ -49,11 +49,12 @@ if __name__ == '__main__':
     data_collator = DataCollator(src=train_conf.src, tgt=train_conf.tgt, src_tokenizer=src_tokenizer,
                                  tgt_tokenizer=tgt_tokenizer, pad_token=pad_token)
 
-    train_loader = DataLoader(tokenized_valid_data, batch_size=train_conf.train_batch_size, collate_fn=data_collator)
+    train_loader = DataLoader(tokenized_valid_data, batch_size=train_conf.train_batch_size, collate_fn=data_collator,
+                              num_workers=train_conf.num_workers)
     valid_loader = DataLoader(tokenized_valid_data, batch_size=train_conf.valid_batch_size, collate_fn=data_collator,
-                              shuffle=False)
+                              shuffle=False, num_workers=train_conf.num_workers)
     test_loader = DataLoader(tokenized_test_data, batch_size=train_conf.valid_batch_size, collate_fn=data_collator,
-                             shuffle=False)
+                             shuffle=False, num_workers=train_conf.num_workers)
 
     src_vocab = src_tokenizer.vocab_size
     tgt_vocab = tgt_tokenizer.vocab_size
@@ -109,4 +110,3 @@ if __name__ == '__main__':
         })
 
         th.save(model.state_dict(), f"./data/model_weights/{epoch}-seq2seq.pt")
-
