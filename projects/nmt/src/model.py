@@ -85,11 +85,9 @@ class Seq2Seq(nn.Module):
 
 
 def create_model_from_config(src_vocab: int, tgt_vocab: int, config: Seq2SeqConfig, **kwargs):
-    device = kwargs.get('device', 'cpu')
-
+    
     return Seq2Seq(src_vocab, tgt_vocab, config.d_model, config.nhead, config.num_decoder_layers,
-                   config.num_encoder_layers, config.dim_feedforward, config.dropout, config.pad_token) \
-        .to(device)
+                   config.num_encoder_layers, config.dim_feedforward, config.dropout, config.pad_token)
 
 
 def create_optimizer_from_config(config: OptimizerConfig, model: th.nn.Module):

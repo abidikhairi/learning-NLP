@@ -41,7 +41,7 @@ class DataCollator(object):
         src = self.src_tokenizer(src_sentences, padding=True, truncation=True, return_tensors="pt")
         tgt = self.tgt_tokenizer(tgt_sentences, padding=True, truncation=True, return_tensors="pt")
 
-        batch = { 'src': src, 'tgt': tgt }
+        batch = {'src': src, 'tgt': tgt}
 
         return Batch(batch=batch, pad_token=self.pad_token)
 
@@ -91,6 +91,12 @@ class Batch:
                                                                       pad_id=self.pad_token)
 
         src, src_mask, tgt, tgt_mask = move(src, src_mask, tgt, tgt_mask, device=device)
+
+        return src, src_mask, tgt, tgt_mask, tgt_y, seq_len
+
+    def get_pl_batch(self):
+        src, src_mask, tgt, tgt_mask, tgt_y, seq_len = prepare_inputs(self.src, self.src_mask, self.tgt, self.tgt_mask,
+                                                                      pad_id=self.pad_token)
 
         return src, src_mask, tgt, tgt_mask, tgt_y, seq_len
 
