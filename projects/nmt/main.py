@@ -96,7 +96,7 @@ if __name__ == '__main__':
                 experim.log({
                     "valid/loss": loss,
                     "valid/running_loss": running_loss,
-                    "valid/bleu": validation_bleu
+                    "valid/bleu": bleu_score
                 })
 
         validation_bleu = running_score / len(valid_loader)
