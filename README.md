@@ -10,3 +10,4 @@
 - ["BERT-based models for language understanding"](https://arxiv.org/abs/1908.08962) (ACL 2019)
 - ["RoBERTa: A Robustly Optimized BERT Pretraining Approach"](https://arxiv.org/abs/1907.11692) (arXiv 2019)
 - ["ALBERT: A Lite BERT for Self-supervised Learning of Language Representations"](https://arxiv.org/abs/1909.11942) (ICLR 2020)
+- ["MaskGAN: Better Text Generation via Filling in the______"](https://arxiv.org/abs/1801.07736)
