@@ -4,6 +4,6 @@
   "beta1": 0.9,
   "beta2": 0.98,
   "eps": 0.000001,
-  "warmup_steps": 4000,
+  "warmup_steps": 600,
   "d_model":1024
 }
