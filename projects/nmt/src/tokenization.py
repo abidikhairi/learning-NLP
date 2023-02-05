@@ -64,6 +64,10 @@ def build_tokenizer(args):
     th.save(vocab, output_file)
 
 
+def load_tokenizer_from_file(vocab_file: str) -> Tokenizer:
+    return Tokenizer(vocab_file=vocab_file)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Build Language specific tokenizer')
 
