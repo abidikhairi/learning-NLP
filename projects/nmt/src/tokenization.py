@@ -12,6 +12,7 @@ class Tokenizer(th.nn.Module):
         super(Tokenizer, self).__init__()
 
         self.word2idx = Vocab(th.load(vocab_file))
+        self.vocab_size = len(self.word2idx.vocab)
 
     def prepare_tokens(self, tokens: List[str]):
         ret = []
