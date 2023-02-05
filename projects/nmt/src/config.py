@@ -25,10 +25,11 @@ class TrainingConfig(BaseModel):
     device: str
     src: str
     tgt: str
-    dataset: str
-    dataset_name: str
-    src_tokenizer: str
-    tgt_tokenizer: str
+    src_vocab: str
+    tgt_vocab: str
+    train_file: str
+    valid_file: str
+    test_file: str
     epochs: int
     train_batch_size: int
     valid_batch_size: int
