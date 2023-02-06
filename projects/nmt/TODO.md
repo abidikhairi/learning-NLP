@@ -15,3 +15,4 @@
     - Decoder Masking
    
 5. Implement custom arabic tokenizer
+6. There is a memory leak in training loop $\implies$ Need to be investigated
