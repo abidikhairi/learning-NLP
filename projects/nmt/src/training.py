@@ -1,5 +1,4 @@
 import torch
-from torchmetrics import BLEUScore
 
 
 def training_step(model, compute_loss, optimizer, scheduler, batch, device):
@@ -17,7 +16,8 @@ def training_step(model, compute_loss, optimizer, scheduler, batch, device):
     return loss
 
 
-def validation_step(model, compute_loss, batch, device, tgt_tokenizer):
+@torch.no_grad()
+def validation_step(model, compute_loss, batch, device, tgt_tokenizer, metric):
     src, src_mask, tgt, tgt_mask, tgt_y, seq_len = batch(device=device)
 
     output = model(src, src_mask, tgt, tgt_mask)
@@ -27,10 +27,9 @@ def validation_step(model, compute_loss, batch, device, tgt_tokenizer):
 
     preds = torch.argmax(output, dim=-1)
 
-    preds = tgt_tokenizer.batch_decode(preds)
-    references = tgt_tokenizer.batch_decode(tgt)
+    preds = tgt_tokenizer.decode(preds)
+    references = tgt_tokenizer.decode(tgt)
 
-    bleu_score = BLEUScore(n_gram=2)
-    score = bleu_score(preds, references)
+    score = metric.compute(predictions=preds, references=references)
 
-    return loss, score
+    return loss, score['bleu']

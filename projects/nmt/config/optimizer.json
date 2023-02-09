@@ -1,9 +1,9 @@
 {
   "lr": 0.05,
-  "weight_decay": 0.1,
+  "weight_decay": 0.003,
   "beta1": 0.9,
   "beta2": 0.98,
   "eps": 0.000001,
-  "warmup_steps": 600,
-  "d_model":1024
+  "warmup_steps": 400,
+  "d_model":512
 }

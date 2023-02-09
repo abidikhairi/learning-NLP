@@ -16,8 +16,8 @@ class Tokenizer(th.nn.Module):
 
     def prepare_tokens(self, tokens: List[str]):
         ret = []
-        sos_token = self.word2idx['<sos>']
-        eos_token = self.word2idx['<eos>']
+        sos_token = self.bos_token_id
+        eos_token = self.eos_token_id
 
         for token_list in tokens:
             token_list = [sos_token] + token_list + [eos_token]
@@ -26,7 +26,7 @@ class Tokenizer(th.nn.Module):
         return ret
 
     def encode(self, text: List[str]) -> th.LongTensor:
-        pad_token_id = self.word2idx['<pad>']
+        pad_token_id = self.pad_token_id
 
         tokens = list(map(word_tokenize, text))
         token_ids = list(map(self.word2idx, tokens))
@@ -36,10 +36,30 @@ class Tokenizer(th.nn.Module):
         token_ids = pad_sequence(token_ids, batch_first=True, padding_value=pad_token_id)
         return token_ids
 
+    @th.no_grad()
+    def decode(self, outputs: th.LongTensor):
+        outputs = outputs.cpu().tolist()
+        decoded = list(map(self.word2idx.lookup_tokens, outputs))
+        decoded = list(map(lambda x: " ".join(x), decoded))
+
+        return decoded
+
     def forward(self, inputs: List[str]):
         input_ids = self.encode(inputs)
 
         return input_ids
+
+    @property
+    def bos_token_id(self):
+        return self.word2idx.vocab['<sos>']
+
+    @property
+    def pad_token_id(self):
+        return self.word2idx.vocab['<pad>']
+
+    @property
+    def eos_token_id(self):
+        return self.word2idx.vocab['eos']
 
 
 def yield_tokens(df: pd.DataFrame):

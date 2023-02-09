@@ -1,14 +1,15 @@
 import wandb
+import evaluate
 import torch as th
 from tqdm import tqdm
 from torch.utils.data import DataLoader
-from transformers import AutoTokenizer
-from datasets import load_dataset
+from src.datasets import TranslationDataset
 from src.model import create_model_from_config, create_optimizer_from_config
 from src.parts import LabelSmoothing, SimpleLossCompute
 from src.training import training_step, validation_step
 from src.config import Seq2SeqConfig, OptimizerConfig, TrainingConfig
-from src.utils import extract_sentences, DataCollator, parse_config_file
+from src.utils import DataCollator, parse_config_file
+from src.tokenization import load_tokenizer_from_file
 
 if __name__ == '__main__':
     train_conf: TrainingConfig = parse_config_file("./config/training.json", TrainingConfig)
@@ -17,43 +18,30 @@ if __name__ == '__main__':
 
     experim_conf = {**train_conf.dict(), **model_config.dict(), **optim_config.dict()}
 
-    experim = wandb.init(project="machine-translation", entity="flursky", tags=[train_conf.dataset],
-                         config=experim_conf)
+    experim = wandb.init(project="machine-translation", entity="flursky", tags=["en-ar"], config=experim_conf)
 
     device = th.device(train_conf.device)
 
-    src_tokenizer = AutoTokenizer.from_pretrained(train_conf.src_tokenizer)
-    tgt_tokenizer = AutoTokenizer.from_pretrained(train_conf.tgt_tokenizer)
+    src_tokenizer = load_tokenizer_from_file(train_conf.src_vocab)
+    tgt_tokenizer = load_tokenizer_from_file(train_conf.tgt_vocab)
 
-    dataset = load_dataset(train_conf.dataset, train_conf.dataset_name)
+    train_data = TranslationDataset('./data/train.csv', source=train_conf.src, target=train_conf.tgt, src_col_idx=0,
+                                    tgt_col_idx=1)
+    valid_data = TranslationDataset('./data/valid.csv', source=train_conf.src, target=train_conf.tgt, src_col_idx=0,
+                                    tgt_col_idx=1)
+    test_data = TranslationDataset('./data/test.csv', source=train_conf.src, target=train_conf.tgt, src_col_idx=0,
+                                   tgt_col_idx=1)
 
-    train_dataset = dataset['train']
-    valid_dataset = dataset['validation']
-    test_dataset = dataset['test']
-
-    tokenized_train_data = train_dataset.map(extract_sentences, batch_size=256) \
-        .remove_columns('translation') \
-        .with_format("torch")
-
-    tokenized_valid_data = train_dataset.map(extract_sentences, batch_size=256) \
-        .remove_columns('translation') \
-        .with_format("torch")
-
-    tokenized_test_data = train_dataset.map(extract_sentences, batch_size=256) \
-        .remove_columns('translation') \
-        .with_format("torch")
-
-    assert src_tokenizer.pad_token_id == tgt_tokenizer.pad_token_id, "the two tokenizers must have the same padding idx"
-    pad_token = src_tokenizer.pad_token_id
+    pad_token = src_tokenizer.word2idx['<pad>']
 
     data_collator = DataCollator(src=train_conf.src, tgt=train_conf.tgt, src_tokenizer=src_tokenizer,
-                                 tgt_tokenizer=tgt_tokenizer, pad_token=pad_token)
+                                 tgt_tokenizer=tgt_tokenizer)
 
-    train_loader = DataLoader(tokenized_valid_data, batch_size=train_conf.train_batch_size, collate_fn=data_collator,
+    train_loader = DataLoader(train_data, batch_size=train_conf.train_batch_size, collate_fn=data_collator,
                               num_workers=train_conf.num_workers)
-    valid_loader = DataLoader(tokenized_valid_data, batch_size=train_conf.valid_batch_size, collate_fn=data_collator,
+    valid_loader = DataLoader(valid_data, batch_size=train_conf.valid_batch_size, collate_fn=data_collator,
                               shuffle=False, num_workers=train_conf.num_workers)
-    test_loader = DataLoader(tokenized_test_data, batch_size=train_conf.valid_batch_size, collate_fn=data_collator,
+    test_loader = DataLoader(test_data, batch_size=train_conf.valid_batch_size, collate_fn=data_collator,
                              shuffle=False, num_workers=train_conf.num_workers)
 
     src_vocab = src_tokenizer.vocab_size
@@ -67,8 +55,11 @@ if __name__ == '__main__':
     criterion = LabelSmoothing(model_config.d_model, padding_idx=pad_token, smoothing=train_conf.smoothing_factor)
     loss_fn = SimpleLossCompute(model.generator, criterion)
 
+    best_blue = 0.0
+
     for epoch in range(train_conf.epochs):
         running_training_loss = 0.0
+        model.train()
         for batch_idx, batch in tqdm(enumerate(train_loader), total=len(train_loader), desc="Training"):
             train_loss = training_step(model=model, compute_loss=loss_fn, optimizer=optimizer,
                                        scheduler=scheduler, batch=batch, device=device)
@@ -77,7 +68,6 @@ if __name__ == '__main__':
             if batch_idx % log_every_n_steps == 0:
                 experim.log({
                     "train/loss": train_loss,
-                    "train/running_loss": running_training_loss,
                     "train/last_lr": scheduler.get_last_lr()
                 })
 
@@ -86,16 +76,18 @@ if __name__ == '__main__':
         running_score = 0.0
         running_loss = 0.0
 
+        metric = evaluate.load('bleu')
+
+        model.eval()
         for batch_idx, batch in tqdm(enumerate(valid_loader), desc="Validation", total=len(valid_loader)):
             loss, bleu_score = validation_step(model=model, compute_loss=loss_fn, batch=batch,
-                                               device=device, tgt_tokenizer=tgt_tokenizer)
+                                               device=device, tgt_tokenizer=tgt_tokenizer, metric=metric)
             running_score += bleu_score
             running_loss += loss
 
             if batch_idx % log_every_n_steps == 0:
                 experim.log({
                     "valid/loss": loss,
-                    "valid/running_loss": running_loss,
                     "valid/bleu": bleu_score
                 })
 
@@ -103,10 +95,12 @@ if __name__ == '__main__':
         validation_loss = running_loss / len(valid_loader)
 
         experim.log({
-            "epoch": epoch,
-            "train_loss": train_loss,
-            "validation_loss": validation_loss,
-            "validation_bleu": validation_bleu
+            "main/epoch": epoch,
+            "main/train_loss": train_loss,
+            "main/validation_loss": validation_loss,
+            "main/validation_bleu": validation_bleu
         })
 
-        th.save(model.state_dict(), f"./data/model_weights/{epoch}-seq2seq.pt")
+        if validation_bleu > best_blue:
+            best_blue = validation_bleu
+            th.save(model.state_dict(), f"./data/model_weights/seq2seq-{epoch}-{best_blue}.pt")

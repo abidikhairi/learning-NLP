@@ -78,6 +78,19 @@ class Seq2Seq(nn.Module):
 
         return out
 
+    def encode(self, src, src_mask):
+        src = self.pe(self.src_embedding(src))
+        memory = self.encoder(src, src_mask)
+
+        return memory
+
+    def decode(self, memory, src_mask, tgt, tgt_mask):
+        tgt = self.pe(self.tgt_embedding(tgt))
+
+        output = self.decoder(tgt, memory, src_mask, tgt_mask)
+
+        return output
+
     def validation_step(self, src, src_mask, tgt, tgt_mask):
         output = self(src, src_mask, tgt, tgt_mask)
 
@@ -90,6 +103,14 @@ def create_model_from_config(src_vocab: int, tgt_vocab: int, config: Seq2SeqConf
     return Seq2Seq(src_vocab, tgt_vocab, config.d_model, config.nhead, config.num_decoder_layers,
                    config.num_encoder_layers, config.dim_feedforward, config.dropout, config.pad_token) \
         .to(device)
+
+
+def load_model_from_config(src_vocab: int, tgt_vocab: int, config: Seq2SeqConfig, model_file: str, **kwargs):
+    model: th.nn.Module = create_model_from_config(src_vocab, tgt_vocab, config, **kwargs)
+    model.load_state_dict(th.load(model_file))
+    model.eval()
+
+    return model
 
 
 def create_optimizer_from_config(config: OptimizerConfig, model: th.nn.Module):
